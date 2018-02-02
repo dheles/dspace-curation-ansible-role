@@ -1,2 +1,59 @@
 ---
-# tasks file for dspace-curation
+- name: set path to curation module
+  set_fact:
+    dspace_curation_path: "{{ dspace_curation_source }}"
+  set_fact:
+    dspace_curation_path: "{{ dspace_curation_source }}/{{ dspace_curation_module }}"
+  when: dspace_curation_module != ''
+
+- name: clone curation tasks from repo
+  git:
+    repo: "{{ dspace_curation_repo }}"
+    dest: "{{ dspace_curation_source }}"
+    version: "{{ dspace_curation_branch | default('HEAD') }}"
+  become: true
+  become_user: "{{ dspace_user }}"
+
+- name: maven package
+  become: true
+  become_user: "{{ dspace_user }}"
+  shell: "source /etc/profile && mvn clean package"
+  args:
+    chdir: "{{ dspace_curation_path }}"
+
+- name: deploy tasks
+  include: deploy_task.yml
+  become: true
+  become_user: "{{ dspace_user }}"
+  vars:
+    path:         "{{ dspace_curation_path }}"
+    shortname:    "{{ item.shortname }}"
+    ui_taskname:  "{{ item.ui_taskname | default('') }}"
+    classname:    "{{ item.class }}"
+    bundle:       "{{ item.bundle }}"
+    state:        "{{ item.state }}"
+  with_items:     "{{ dspace_curation_tasks }}"
+
+- name: configure tasks (v < 6)
+  become: true
+  become_user: "{{ dspace_user }}"
+  template:
+    src: "{{ dspace_curation_cfg_template }}"
+    dest: "{{ dspace_install }}/config/modules/curate.cfg"
+    backup: true
+  when: dspace_major_version < 6
+
+# TODO: test
+- name: configure tasks (v >= 6)
+  include: configure_task.yml
+  become: true
+  become_user: "{{ dspace_user }}"
+  vars:
+    path:         "{{ dspace_curation_path }}"
+    shortname:    "{{ item.shortname }}"
+    ui_taskname:  "{{ item.ui_taskname | default('') }}"
+    classname:    "{{ item.class }}"
+    bundle:       "{{ item.bundle }}"
+    state:        "{{ item.state }}"
+  with_items:     "{{ dspace_curation_tasks }}"
+  when: dspace_major_version >= 6

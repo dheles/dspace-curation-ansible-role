@@ -1,0 +1,19 @@
+---
+- name: configure task for commandline
+  blockinfile:
+    dest: "{{ dspace_install }}/config/modules/curate.cfg"
+    insertafter: '^plugin.named.org.dspace.curate.CurationTask.*$'
+    block: |
+      plugin.named.org.dspace.curate.CurationTask = {{ classname }} = {{ shortname }}
+    marker: "# {mark} {{ item.shortname }} task class"
+    state: "{{ item.state }}"
+
+- name: configure task for ui
+  blockinfile:
+    dest: "{{ dspace_install }}/config/modules/curate.cfg"
+    insertafter: '^ui.tasknames.*$'
+    block: |
+      curate.ui.tasknames = {{ item.shortname }} = {{ item.ui_taskname }}
+    marker: "# {mark} {{ item.shortname }} taskname"
+    state: "{{ item.state }}"
+  when: ui_taskname != ''
