@@ -42,6 +42,7 @@
     dest: "{{ dspace_install }}/config/modules/curate.cfg"
     backup: true
   when: dspace_major_version < 6
+  notify: restart tomcat
 
 # TODO: test
 - name: configure tasks (v >= 6)
