@@ -4,7 +4,7 @@
     dest: "{{ dspace_install }}/config/modules/curate.cfg"
     insertafter: '^plugin.named.org.dspace.curate.CurationTask.*$'
     block: |
-      plugin.named.org.dspace.curate.CurationTask = {{ classname }} = {{ shortname }}
+      plugin.named.org.dspace.curate.CurationTask = {{ package }}.{{ classname }} = {{ shortname }}
     marker: "# {mark} {{ item.shortname }} task class"
     state: "{{ item.state }}"
   notify: restart tomcat

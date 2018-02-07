@@ -10,7 +10,7 @@
 plugin.named.org.dspace.curate.CurationTask = \
 {% for task in dspace_curation_tasks  %}
 {% if task.state == 'present' %}
-    {{ task.classname }} = {{ task.shortname }}, \
+    {{ task.package }}.{{ task.classname }} = {{ task.shortname }}, \
 {% endif %}
 {% endfor %}
     org.dspace.ctask.general.NoOpCurationTask = noop, \

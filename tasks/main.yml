@@ -2,7 +2,7 @@
 - name: set path to curation module
   set_fact:
     dspace_curation_path: "{{ dspace_curation_source }}"
-  set_fact:
+- set_fact:
     dspace_curation_path: "{{ dspace_curation_source }}/{{ dspace_curation_module }}"
   when: dspace_curation_module != ''
 
@@ -27,11 +27,9 @@
   become_user: "{{ dspace_user }}"
   vars:
     path:         "{{ dspace_curation_path }}"
-    shortname:    "{{ item.shortname }}"
-    ui_taskname:  "{{ item.ui_taskname | default('') }}"
-    classname:    "{{ item.class }}"
     bundle:       "{{ item.bundle }}"
     state:        "{{ item.state }}"
+    ui_taskname:  "{{ item.ui_taskname | default('') }}"
   with_items:     "{{ dspace_curation_tasks }}"
 
 - name: configure tasks (v < 6)
@@ -53,8 +51,21 @@
     path:         "{{ dspace_curation_path }}"
     shortname:    "{{ item.shortname }}"
     ui_taskname:  "{{ item.ui_taskname | default('') }}"
-    classname:    "{{ item.class }}"
+    package:      "{{ item.package }}"
+    classname:    "{{ item.classname }}"
     bundle:       "{{ item.bundle }}"
     state:        "{{ item.state }}"
   with_items:     "{{ dspace_curation_tasks }}"
   when: dspace_major_version >= 6
+
+- name: log task
+  include: log_task.yml
+  become: true
+  become_user: "{{ dspace_user }}"
+  vars:
+    shortname:    "{{ item.shortname }}"
+    package:      "{{ item.package }}"
+    logging:      "{{ item.logging | default(false) }}"
+    loglevel:     "{{ item.loglevel | default(dspace_curation_loglevel) }}"
+    log_template: "{{ item.log_template | default(dspace_curation_log_template) }}"
+  with_items:     "{{ dspace_curation_tasks }}"
